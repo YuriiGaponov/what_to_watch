@@ -4,7 +4,7 @@ from datetime import datetime
 from random import randrange
 
 # Импортируем функцию render_template():
-from flask import Flask, redirect, render_template, url_for
+from flask import Flask, flash, redirect, render_template, url_for
 from flask_sqlalchemy import SQLAlchemy
 from flask_wtf import FlaskForm
 from wtforms import StringField, SubmitField, TextAreaField, URLField
@@ -67,6 +67,13 @@ def add_opinion_view():
     form = OpinionForm()
     # Если ошибок не возникло...
     if form.validate_on_submit():
+        text = form.text.data
+        # Если в БД уже есть мнение с текстом, который ввёл пользователь...
+        if Opinion.query.filter_by(text=text).first() is not None:
+            # ...вызвать функцию flash и передать соответствующее сообщение:
+            flash('Такое мнение уже было оставлено ранее!')
+            # Вернуть пользователя на страницу «Добавить новое мнение»:
+            return render_template('add_opinion.html', form=form)
         # ...то нужно создать новый экземпляр класса Opinion:
         opinion = Opinion(
             # И передать в него данные, полученные из формы:
